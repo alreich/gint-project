@@ -6,8 +6,9 @@
     >>> Zi(1, 0) / Zi(1, 1)
     Qi('1/2', '-1/2')
 
-Zi represents elements of Z[i]; Qi represents elements of Q(i) and
-transparently collapses to a Zi whenever both components are whole
+Zi represent a Gaussian integer and Qi represents a Gaussian rational
+(a complex number with rational real and imaginary components).
+A Qi ransparently collapses to a Zi whenever both components are whole
 numbers, e.g. Qi(4, 6) is a Zi(4, 6).
 """
 

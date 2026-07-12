@@ -16,8 +16,8 @@ from .zi import Zi
 
 
 class Qi(Complex):
-    """A class that represents a Gaussian rational: a + bi with a, b in Q.
-    The set of all Gaussian rationals is denoted Q(i)."""
+    """A class that represents a Gaussian rational: a + bi with a, b in Q,
+    the set of all rational numbers."""
 
     __slots__ = ('_real', '_imag')
 
