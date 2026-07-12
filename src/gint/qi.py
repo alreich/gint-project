@@ -21,12 +21,12 @@ class Qi(Complex):
 
     __slots__ = ('_real', '_imag')
 
-    # Which character represents the imaginary unit in str(). Change via
-    # Qi.set_unit_symbol('i') / Qi.set_unit_symbol('j').
+    # The character that represents the imaginary unit in str()
+    # Change via Qi.set_unit_symbol('i')  or  Qi.set_unit_symbol('j')
     _unit_symbol = 'j'
 
-    # Default cap used by limit_denominator() when none is given. Change
-    # via Qi.set_max_denominator(...).
+    # Default cap used by limit_denominator() when none is given
+    # Change via Qi.set_max_denominator(...)
     _max_denominator = 1_000_000
 
     # A composite string like '(1/2-3/5j)', '3/5j', or '-2i': an optional
