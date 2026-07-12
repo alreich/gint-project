@@ -9,8 +9,8 @@ description = "Gaussian integers (Zi) and Gaussian rationals (Qi)"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-authors = [{ name = "Al" }]
-keywords = ["gaussian integers", "number theory", "abstract algebra"]
+authors = [{ name = "Alfred J. Reich" }]
+keywords = ["gaussian integers", "gaussian rationals", "number theory", "complex numbers"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -24,8 +24,8 @@ test = ["pytest"]
 docs = ["sphinx", "sphinx-rtd-theme"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/gint"
-Documentation = "https://gint.readthedocs.io"
+Homepage = "https://github.com/alreich/gint-project"
+Documentation = "https://gint-project.readthedocs.io"
 
 # --- src layout: tell setuptools the package lives under src/ ---
 [tool.setuptools.packages.find]
