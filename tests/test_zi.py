@@ -160,7 +160,7 @@ class TestUnary(unittest.TestCase):
         self.assertEqual(Zi(3, 4).conjugate(), Zi(3, -4))
 
     def test_norm(self):
-        self.assertEqual(Zi(3, 4).norm(), 25)
+        self.assertEqual(Zi(3, 4).norm, 25)
 
     def test_abs(self):
         self.assertEqual(abs(Zi(3, 4)), 5.0)
@@ -529,7 +529,7 @@ class TestNumberTheory(unittest.TestCase):
             if b == Zi(0, 0):
                 continue
             _, r = Zi.modified_divmod(a, b)
-            self.assertLess(r.norm(), b.norm())
+            self.assertLess(r.norm, b.norm)
 
     def test_modified_divmod_by_zero_raises(self):
         with self.assertRaises(ZeroDivisionError):
@@ -542,7 +542,7 @@ class TestNumberTheory(unittest.TestCase):
         # gcd(4+2i, 1+i) -- 1+i divides 4+2i? (4+2i)/(1+i) = 3-i exactly.
         self.assertEqual((Zi(4, 2) / Zi(1, 1)), Zi(3, -1))
         g = Zi.gcd(Zi(4, 2), Zi(1, 1))
-        self.assertEqual(g.norm(), Zi(1, 1).norm())
+        self.assertEqual(g.norm, Zi(1, 1).norm)
 
     def test_gcd_divides_both_operands(self):
         rng = random.Random(5)
@@ -574,7 +574,7 @@ class TestNumberTheory(unittest.TestCase):
                 continue
             g, _, _ = Zi.xgcd(a, b)
             plain_g = Zi.gcd(a, b)
-            self.assertEqual(g.norm(), plain_g.norm())
+            self.assertEqual(g.norm, plain_g.norm)
 
     def test_xgcd_with_zero(self):
         g, s, t = Zi.xgcd(Zi(0, 0), Zi(3, 4))
@@ -621,13 +621,13 @@ class TestUtilities(unittest.TestCase):
         rng = random.Random(9)
         for _ in range(200):
             z = Zi(rng.randint(-10, 10), rng.randint(-10, 10))
-            self.assertEqual(z.is_unit, z.norm() == 1)
+            self.assertEqual(z.is_unit, z.norm == 1)
 
     def test_two(self):
         self.assertEqual(Zi.two(), Zi(1, 1))
         # 1+i has norm 2 and is the Gaussian prime lying above the
         # ramified rational prime 2.
-        self.assertEqual(Zi.two().norm(), 2)
+        self.assertEqual(Zi.two().norm, 2)
         self.assertTrue(Zi.is_gaussian_prime(Zi.two()))
 
 
@@ -693,7 +693,7 @@ class TestFuzz(unittest.TestCase):
         # N(a*b) == N(a) * N(b) -- classic Gaussian integer identity
         for _ in range(self.N_TRIALS):
             a, b = self._random_zi(), self._random_zi()
-            self.assertEqual((a * b).norm(), a.norm() * b.norm())
+            self.assertEqual((a * b).norm, a.norm * b.norm)
 
     def test_conjugate_involution(self):
         for _ in range(self.N_TRIALS):
@@ -704,7 +704,7 @@ class TestFuzz(unittest.TestCase):
         # a * conj(a) == N(a) (a real, nonnegative Gaussian integer)
         for _ in range(self.N_TRIALS):
             a = self._random_zi()
-            self.assertEqual(a * a.conjugate(), Zi(a.norm(), 0))
+            self.assertEqual(a * a.conjugate(), Zi(a.norm, 0))
 
     def test_conjugate_of_product(self):
         for _ in range(self.N_TRIALS):
@@ -714,7 +714,7 @@ class TestFuzz(unittest.TestCase):
     def test_abs_squared_equals_norm(self):
         for _ in range(self.N_TRIALS):
             a = self._random_zi()
-            self.assertAlmostEqual(abs(a) ** 2, a.norm(), places=6)
+            self.assertAlmostEqual(abs(a) ** 2, a.norm, places=6)
 
     def test_exact_division_round_trips(self):
         # Construct a*b deliberately so a*b / b == a exactly (no rounding).

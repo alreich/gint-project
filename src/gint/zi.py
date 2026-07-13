@@ -115,7 +115,7 @@ class Zi(Complex):
         return complex(self.real, self.imag)
 
     def __abs__(self):
-        return sqrt(self.norm())
+        return sqrt(self.norm)
 
     def __neg__(self):
         return Zi(-self._real, -self.imag)
@@ -130,6 +130,7 @@ class Zi(Complex):
     def conjugate(self):
         return Zi(self._real, -self.imag)
 
+    @property
     def norm(self):
         return self.real * self.real + self.imag * self.imag
 
@@ -194,7 +195,7 @@ class Zi(Complex):
         oth = Zi._ensure_zi(other)
         if oth is None:
             return NotImplemented
-        n = oth.norm()
+        n = oth.norm
         if n == 0:
             raise ZeroDivisionError("division by zero Gaussian integer")
         from .qi import Qi  # local import: avoids a circular import,
@@ -217,7 +218,7 @@ class Zi(Complex):
         oth = Zi._ensure_zi(other)
         if oth is None:
             return NotImplemented
-        n = oth.norm()
+        n = oth.norm
         if n == 0:
             raise ZeroDivisionError("division by zero Zi")
         num = self * oth.conjugate()
@@ -393,7 +394,7 @@ class Zi(Complex):
     def is_unit(self):
         """A Gaussian integer is a unit iff it has norm 1 (equivalent to,
         but cheaper than, checking membership in Zi.units())."""
-        return self.norm() == 1
+        return self.norm == 1
 
     @staticmethod
     def two():

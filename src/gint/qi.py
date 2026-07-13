@@ -195,7 +195,7 @@ class Qi(Complex):
         return complex(float(self.real), float(self.imag))
 
     def __abs__(self):
-        return sqrt(self.norm())
+        return sqrt(self.norm)
 
     def __neg__(self):
         return Qi(-self.real, -self.imag)
@@ -209,6 +209,7 @@ class Qi(Complex):
     def conjugate(self):
         return Qi(self.real, -self.imag)
 
+    @property
     def norm(self):
         return self.real * self.real + self.imag * self.imag
 

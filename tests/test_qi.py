@@ -282,7 +282,7 @@ class TestUnary(unittest.TestCase):
         self.assertEqual(Qi('1/2', '1/3').conjugate(), Qi('1/2', '-1/3'))
 
     def test_norm(self):
-        self.assertEqual(Qi('1/2', '1/2').norm(), Fraction(1, 2))
+        self.assertEqual(Qi('1/2', '1/2').norm, Fraction(1, 2))
 
     def test_abs(self):
         self.assertAlmostEqual(abs(Qi('3/5', '4/5')), 1.0)
@@ -540,7 +540,7 @@ class TestFuzz(unittest.TestCase):
     def test_norm_is_multiplicative(self):
         for _ in range(self.N_TRIALS):
             a, b = self._random_qi(), self._random_qi()
-            self.assertEqual((a * b).norm(), a.norm() * b.norm())
+            self.assertEqual((a * b).norm, a.norm * b.norm)
 
     def test_conjugate_involution(self):
         for _ in range(self.N_TRIALS):
@@ -550,7 +550,7 @@ class TestFuzz(unittest.TestCase):
     def test_conjugate_norm_identity(self):
         for _ in range(self.N_TRIALS):
             a = self._random_qi()
-            self.assertEqual(a * a.conjugate(), Qi(a.norm(), 0))
+            self.assertEqual(a * a.conjugate(), Qi(a.norm, 0))
 
     def test_conjugate_of_product(self):
         for _ in range(self.N_TRIALS):
