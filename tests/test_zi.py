@@ -581,6 +581,174 @@ class TestNumberTheory(unittest.TestCase):
         self.assertEqual(g, Zi(3, 4))
         self.assertEqual(Zi(0, 0) * s + Zi(3, 4) * t, g)
 
+    def test_lcm_basic(self):
+        # lcm(4, 6) == 12 in the ordinary integers (embedded in Z[i]).
+        self.assertEqual(Zi.lcm(Zi(4, 0), Zi(6, 0)).norm, Zi(12, 0).norm)
+
+    def test_lcm_with_zero_is_zero(self):
+        self.assertEqual(Zi.lcm(Zi(0, 0), Zi(3, 4)), Zi(0, 0))
+
+    def test_lcm_is_divisible_by_both_operands(self):
+        rng = random.Random(15)
+        for _ in range(200):
+            a = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
+            b = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
+            if a == Zi(0, 0) or b == Zi(0, 0):
+                continue
+            l = Zi.lcm(a, b)
+            self.assertEqual(l % a, Zi(0, 0))
+            self.assertEqual(l % b, Zi(0, 0))
+
+    def test_gcd_times_lcm_norm_matches_product_norm(self):
+        # |gcd(a,b)| * |lcm(a,b)| == |a| * |b| (norms, since gcd/lcm
+        # are each only defined up to a unit -- exact equality won't
+        # hold, but the norm identity is unit-independent).
+        rng = random.Random(16)
+        for _ in range(200):
+            a = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
+            b = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
+            if a == Zi(0, 0) or b == Zi(0, 0):
+                continue
+            g = Zi.gcd(a, b)
+            l = Zi.lcm(a, b)
+            self.assertEqual(g.norm * l.norm, a.norm * b.norm)
+
+    def test_is_associate_true_for_unit_multiples(self):
+        a = Zi(3, 4)
+        for u in Zi.units():
+            self.assertTrue(Zi.is_associate(a, a * u))
+
+    def test_is_associate_false_for_non_associates(self):
+        self.assertFalse(Zi.is_associate(Zi(1, 1), Zi(2, 2)))
+
+    def test_is_associate_zero_only_associate_with_itself(self):
+        self.assertTrue(Zi.is_associate(Zi(0, 0), Zi(0, 0)))
+        self.assertFalse(Zi.is_associate(Zi(0, 0), Zi(1, 1)))
+        self.assertFalse(Zi.is_associate(Zi(1, 1), Zi(0, 0)))
+
+    def test_is_coprime_true_case(self):
+        # 1+i and 1-i: gcd has norm 2 -- NOT coprime, a good negative
+        # check -- so use a genuinely coprime pair instead: 2+i and 3.
+        self.assertTrue(Zi.is_coprime(Zi(2, 1), Zi(3, 0)))
+
+    def test_is_coprime_false_case(self):
+        self.assertFalse(Zi.is_coprime(Zi(1, 1), Zi(1, -1)))  # both norm 2
+        self.assertFalse(Zi.is_coprime(Zi(2, 0), Zi(4, 0)))
+
+    def test_is_coprime_zero_zero_is_false(self):
+        self.assertFalse(Zi.is_coprime(Zi(0, 0), Zi(0, 0)))
+
+    def test_divides_true_case(self):
+        self.assertTrue(Zi.divides(Zi(1, 1), Zi(4, 2)))
+
+    def test_divides_false_case(self):
+        self.assertFalse(Zi.divides(Zi(1, 1), Zi(1, 2)))
+
+    def test_divides_by_zero_convention(self):
+        self.assertTrue(Zi.divides(Zi(0, 0), Zi(0, 0)))
+        self.assertFalse(Zi.divides(Zi(0, 0), Zi(1, 1)))
+
+    def test_divides_consistent_with_gcd(self):
+        # gcd(a, b) must divide both a and b, by definition.
+        rng = random.Random(17)
+        for _ in range(200):
+            a = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
+            b = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
+            if a == Zi(0, 0) or b == Zi(0, 0):
+                continue
+            g = Zi.gcd(a, b)
+            self.assertTrue(Zi.divides(g, a))
+            self.assertTrue(Zi.divides(g, b))
+
+# ----------------------------------------------------------------------
+# Gaussian integer factorization
+# ----------------------------------------------------------------------
+
+class TestFactor(unittest.TestCase):
+    def test_factor_zero_raises(self):
+        with self.assertRaises(ValueError):
+            Zi.factor(Zi(0, 0))
+
+    def test_factor_unit_is_itself_with_no_prime_factors(self):
+        for u in Zi.units():
+            unit, factors = Zi.factor(u)
+            self.assertEqual(unit, u)
+            self.assertEqual(factors, [])
+
+    def test_factor_ramified_two(self):
+        # 2 == -i * (1+i)^2
+        unit, factors = Zi.factor(Zi(2, 0))
+        self.assertEqual(factors, [(Zi(1, 1), 2)])
+        self.assertEqual(unit * Zi(1, 1) ** 2, Zi(2, 0))
+
+    def test_factor_inert_prime(self):
+        # 3 == 3 (mod 4): stays prime in Z[i], factors as itself.
+        unit, factors = Zi.factor(Zi(3, 0))
+        self.assertEqual(factors, [(Zi(3, 0), 1)])
+        self.assertTrue(Zi.is_gaussian_prime(Zi(3, 0)))
+
+    # def test_factor_split_prime(self):
+    #     # 5 == 1 (mod 4): splits as (2+i)(2-i) (up to units/ordering).
+    #     unit, factors = Zi.factor(Zi(5, 0))
+    #     primes = {p for p, _ in factors}
+    #     self.assertEqual(primes, {Zi(2, 1), Zi(2, -1)})
+    #     for p, e in factors:
+    #         self.assertEqual(e, 1)
+
+    def test_factor_split_prime(self):
+        # 5 == 1 (mod 4): splits into two conjugate Gaussian primes of
+        # norm 5. We don't hardcode which specific representative
+        # (e.g. 1+2i vs 2+i) the search returns -- those are associates
+        # of each other, differing only by a unit -- just that the
+        # factorization is a conjugate pair of norm-5 Gaussian primes
+        # whose product reconstructs 5.
+        unit, factors = Zi.factor(Zi(5, 0))
+        self.assertEqual(len(factors), 2)
+        for p, e in factors:
+            self.assertEqual(e, 1)
+            self.assertEqual(p.norm, 5)
+            self.assertTrue(Zi.is_gaussian_prime(p))
+        p1, p2 = factors[0][0], factors[1][0]
+        self.assertEqual(p1.conjugate(), p2)
+        product = unit
+        for p, e in factors:
+            product = product * (p**e)
+        self.assertEqual(product, Zi(5, 0))
+
+    def test_factor_already_prime(self):
+        unit, factors = Zi.factor(Zi(1, 1))
+        self.assertEqual(factors, [(Zi(1, 1), 1)])
+
+    def test_factor_reconstructs_original_value(self):
+        rng = random.Random(30)
+        for _ in range(200):
+            z = Zi(rng.randint(-500, 500), rng.randint(-500, 500))
+            if z == Zi(0, 0):
+                continue
+            unit, factors = Zi.factor(z)
+            product = unit
+            for p, e in factors:
+                product = product * (p ** e)
+            self.assertEqual(product, z)
+
+    def test_factor_unit_component_is_a_unit(self):
+        rng = random.Random(31)
+        for _ in range(200):
+            z = Zi(rng.randint(-500, 500), rng.randint(-500, 500))
+            if z == Zi(0, 0):
+                continue
+            unit, _ = Zi.factor(z)
+            self.assertIn(unit, Zi.units())
+
+    def test_factor_all_components_are_gaussian_primes(self):
+        rng = random.Random(32)
+        for _ in range(200):
+            z = Zi(rng.randint(-500, 500), rng.randint(-500, 500))
+            if z == Zi(0, 0):
+                continue
+            _, factors = Zi.factor(z)
+            for p, _e in factors:
+                self.assertTrue(Zi.is_gaussian_prime(p))
 
 # ----------------------------------------------------------------------
 # congruent_modulo
@@ -850,6 +1018,43 @@ class TestFuzz(unittest.TestCase):
             self.assertTrue(Zi.congruent_modulo(b, c, m))
             self.assertTrue(Zi.congruent_modulo(a, c, m))
 
+    def test_is_associate_for_random_unit_multiples(self):
+        for _ in range(self.N_TRIALS):
+            a = self._random_zi(allow_zero=False)
+            u = self.rng.choice(Zi.units())
+            self.assertTrue(Zi.is_associate(a, a * u))
+
+    def test_divides_matches_mod_zero(self):
+        for _ in range(self.N_TRIALS):
+            a = self._random_zi(allow_zero=False)
+            b = self._random_zi()
+            self.assertEqual(Zi.divides(a, b), (b % a == Zi(0, 0)))
+
+    def test_is_coprime_matches_gcd_is_unit(self):
+        for _ in range(self.N_TRIALS // 2):
+            a = self._random_zi(allow_zero=False)
+            b = self._random_zi(allow_zero=False)
+            self.assertEqual(Zi.is_coprime(a, b), Zi.gcd(a, b).is_unit)
+
+    def test_factor_reconstructs_random_values(self):
+        for _ in range(self.N_TRIALS):
+            z = self._random_zi(allow_zero=False)
+            unit, factors = Zi.factor(z)
+            product = unit
+            for p, e in factors:
+                product = product * (p**e)
+            self.assertEqual(product, z)
+
+    def test_factor_norm_matches_product_of_prime_norms(self):
+        # N(z) == prod(N(p)^e) since norm is multiplicative and the
+        # unit contributes norm 1.
+        for _ in range(self.N_TRIALS):
+            z = self._random_zi(allow_zero=False)
+            unit, factors = Zi.factor(z)
+            norm_product = 1
+            for p, e in factors:
+                norm_product *= p.norm**e
+            self.assertEqual(norm_product, z.norm)
 
 # ----------------------------------------------------------------------
 # Interoperability with Qi (Gaussian rationals)

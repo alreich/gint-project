@@ -9,7 +9,7 @@ actually a Zi(4, 6), while Qi(4, '2/3') is a genuine Qi.
 
 import re
 from fractions import Fraction
-from math import sqrt
+from math import sqrt, lcm
 from numbers import Complex
 
 from .zi import Zi
@@ -159,6 +159,17 @@ class Qi(Complex):
         if isinstance(x, float):
             return Qi._to_fraction(x), Fraction(0)
         return None
+
+    @staticmethod
+    def _require_qi(x):
+        """Like _parts, but raises TypeError on failure (rather than
+        returning None) and wraps the result back up as a Qi. Used by
+        static utilities (gcd, congruent_modulo) that have no
+        operator-dispatch fallback to defer to."""
+        parts = Qi._parts(x)
+        if parts is None:
+            raise TypeError(f"Cannot convert {type(x)} to Qi")
+        return Qi(*parts)
 
     # ---------------- Equality -----------------------
 
@@ -354,3 +365,55 @@ class Qi(Complex):
             max_denominator = Qi._max_denominator
         return Qi(self.real.limit_denominator(max_denominator),
                    self.imag.limit_denominator(max_denominator))
+
+    # ---------- Number Theory ----------
+
+    @staticmethod
+    def _clear_denominator(x):
+        """Return (Zi numerator, positive int denominator) such that
+        x == numerator / denominator, using the least common denominator
+        of x's real and imaginary Fraction parts. Private helper for
+        gcd, below."""
+        x = Qi._require_qi(x)
+        if isinstance(x, Zi):
+            return x, 1
+        d = lcm(x.real.denominator, x.imag.denominator)
+        num = Zi(int(x.real * d), int(x.imag * d))
+        return num, d
+
+    @staticmethod
+    def gcd(a, b):
+        """Greatest common divisor of two Gaussian rationals, generalizing
+        the classic rational-number identity
+            gcd(p1/q1, p2/q2) == gcd(p1, p2) / lcm(q1, q2)
+        to Q(i): clear denominators down to Zi numerators, take Zi.gcd
+        of those, and divide by the lcm of the original denominators.
+        The defining property -- the one this is tested against -- is
+        that a/g and b/g both come out as exact Zi values.
+
+        Like Zi.gcd, the result is only defined up to a unit factor.
+        gcd(0, 0) returns 0, matching Zi.gcd's convention.
+        """
+        na, da = Qi._clear_denominator(a)
+        nb, db = Qi._clear_denominator(b)
+        g = Zi.gcd(na, nb)
+        denom = lcm(da, db)
+        return g / Zi(denom, 0)
+
+    @staticmethod
+    def congruent_modulo(a, b, c):
+        """True iff a is congruent to b modulo c over the Gaussian
+        rationals Q(i): i.e., iff (a - b) / c is an exact Gaussian
+        integer. This generalizes Zi.congruent_modulo to inputs drawn
+        from all of Q(i), not just Z[i] -- and agrees with it exactly
+        when a, b, c all happen to be Gaussian integers.
+
+        Raises ZeroDivisionError if c == 0.
+        """
+        a = Qi._require_qi(a)
+        b = Qi._require_qi(b)
+        c = Qi._require_qi(c)
+        if not c:
+            raise ZeroDivisionError("modulus cannot be zero")
+        quotient = (a - b) / c
+        return isinstance(quotient, Zi)

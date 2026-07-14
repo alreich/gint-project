@@ -475,6 +475,75 @@ class TestMaxDenominator(unittest.TestCase):
 
 
 # ----------------------------------------------------------------------
+# gcd and congruent_modulo
+# ----------------------------------------------------------------------
+
+class TestNumberTheory(unittest.TestCase):
+    def test_gcd_matches_rational_gcd_identity(self):
+        # gcd(1/2, 1/3) == 1/6 -- textbook rational-gcd example.
+        g = Qi.gcd(Qi("1/2", "0"), Qi("1/3", "0"))
+        self.assertEqual(g, Qi("1/6", "0"))
+
+    def test_gcd_defining_property(self):
+        # a/g and b/g must both be exact Gaussian integers.
+        rng = random.Random(21)
+        for _ in range(200):
+            a = Qi(
+                Fraction(rng.randint(-50, 50), rng.randint(1, 10)),
+                Fraction(rng.randint(-50, 50), rng.randint(1, 10)),
+            )
+            b = Qi(
+                Fraction(rng.randint(-50, 50), rng.randint(1, 10)),
+                Fraction(rng.randint(-50, 50), rng.randint(1, 10)),
+            )
+            if not a and not b:
+                continue
+            g = Qi.gcd(a, b)
+            if not g:
+                continue
+            self.assertIsInstance(a / g, Zi)
+            self.assertIsInstance(b / g, Zi)
+
+    def test_gcd_of_two_zi_matches_zi_gcd(self):
+        rng = random.Random(22)
+        for _ in range(100):
+            a = Zi(rng.randint(-50, 50), rng.randint(-50, 50))
+            b = Zi(rng.randint(-50, 50), rng.randint(-50, 50))
+            if a == Zi(0, 0) or b == Zi(0, 0):
+                continue
+            self.assertEqual(Qi.gcd(a, b).norm, Zi.gcd(a, b).norm)
+
+    def test_gcd_zero_zero_is_zero(self):
+        self.assertEqual(Qi.gcd(Qi(0, 0), Qi(0, 0)), Zi(0, 0))
+
+    def test_congruent_modulo_zero_modulus_raises(self):
+        with self.assertRaises(ZeroDivisionError):
+            Qi.congruent_modulo(Qi("1/2", "0"), Qi("1/3", "0"), Qi(0, 0))
+
+    def test_congruent_modulo_agrees_with_zi_on_integers(self):
+        rng = random.Random(23)
+        for _ in range(200):
+            a = Zi(rng.randint(-50, 50), rng.randint(-50, 50))
+            b = Zi(rng.randint(-50, 50), rng.randint(-50, 50))
+            c = Zi(rng.randint(-50, 50), rng.randint(-50, 50))
+            if c == Zi(0, 0):
+                continue
+            self.assertEqual(Qi.congruent_modulo(a, b, c), Zi.congruent_modulo(a, b, c))
+
+    def test_congruent_modulo_true_case(self):
+        c = Qi("1/6", "0")
+        a = Qi("1/2", "1/3")
+        b = a + c * Zi(3, 2)  # b - a is c times a Gaussian INTEGER
+        self.assertTrue(Qi.congruent_modulo(a, b, c))
+
+    def test_congruent_modulo_false_case(self):
+        c = Qi("1/6", "0")
+        a = Qi("1/2", "1/3")
+        b = a + c * Zi(3, 2) + Qi("1/12", "0")  # add a non-multiple
+        self.assertFalse(Qi.congruent_modulo(a, b, c))
+
+
+# ----------------------------------------------------------------------
 # Fuzz tests: algebraic properties that must hold for ALL Gaussian
 # rationals
 # ----------------------------------------------------------------------
@@ -610,6 +679,35 @@ class TestFuzz(unittest.TestCase):
             if isinstance(a, Zi):
                 continue
             self.assertEqual(Qi(str(a)), a)
+
+    def test_congruent_modulo_reflexive(self):
+        for _ in range(self.N_TRIALS):
+            a = self._random_qi()
+            m = self._random_qi(allow_zero=False)
+            self.assertTrue(Qi.congruent_modulo(a, a, m))
+
+    def test_congruent_modulo_symmetric(self):
+        for _ in range(self.N_TRIALS):
+            a, b = self._random_qi(), self._random_qi()
+            m = self._random_qi(allow_zero=False)
+            self.assertEqual(Qi.congruent_modulo(a, b, m), Qi.congruent_modulo(b, a, m))
+
+    def test_congruent_modulo_transitive(self):
+        # IMPORTANT: b and c must differ from a by m times a Gaussian
+        # INTEGER (Zi), not an arbitrary Qi -- since Q(i) is a field,
+        # m times an arbitrary rational is "congruent to 0" in a
+        # meaningless sense that would make this test vacuous. Using a
+        # Zi multiplier is exactly what makes the congruence genuine.
+        for _ in range(self.N_TRIALS):
+            a = self._random_qi()
+            m = self._random_qi(allow_zero=False)
+            k1 = Zi(self.rng.randint(-50, 50), self.rng.randint(-50, 50))
+            k2 = Zi(self.rng.randint(-50, 50), self.rng.randint(-50, 50))
+            b = a + m * k1
+            c = b + m * k2
+            self.assertTrue(Qi.congruent_modulo(a, b, m))
+            self.assertTrue(Qi.congruent_modulo(b, c, m))
+            self.assertTrue(Qi.congruent_modulo(a, c, m))
 
 
 def main():

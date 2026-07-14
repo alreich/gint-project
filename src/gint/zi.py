@@ -1,7 +1,7 @@
 """Gaussian integer (Zi) class: a + bi with a, b in Z."""
 
 from fractions import Fraction
-from math import sqrt
+from math import sqrt, isqrt
 from numbers import Complex
 import random as rnd
 
@@ -371,6 +371,51 @@ class Zi(Complex):
         return old_r, old_s, old_t
 
     @staticmethod
+    def is_associate(a, b):
+        """True iff a and b differ only by a unit factor (a == b*u for
+        one of Z[i]'s four units). Two Gaussian integers that are
+        associates generate the same ideal and share the same
+        factorization up to units -- e.g. this is why gcd/xgcd only
+        determine their result up to a unit. By convention, 0 is only
+        an associate of itself."""
+        a = Zi._require_zi(a)
+        b = Zi._require_zi(b)
+        if a == Zi(0, 0) or b == Zi(0, 0):
+            return a == b
+        return (a / b) in Zi.units()
+
+    @staticmethod
+    def is_coprime(a, b):
+        """True iff gcd(a, b) is a unit, i.e., a and b share no common
+        Gaussian-prime factor. Follows the gcd(0, 0) == 0 convention,
+        so is_coprime(0, 0) is False (0 is not a unit)."""
+        return Zi.gcd(a, b).is_unit
+
+    @staticmethod
+    def divides(a, b):
+        """True iff a divides b exactly (there exists a Gaussian integer
+        q with b == a*q). By convention, 0 divides only 0."""
+        a = Zi._require_zi(a)
+        b = Zi._require_zi(b)
+        if a == Zi(0, 0):
+            return b == Zi(0, 0)
+        return b % a == Zi(0, 0)
+
+    @staticmethod
+    def lcm(a, b):
+        """Least common multiple of two Gaussian integers, computed as
+        a*b // gcd(a, b) (exact, since gcd always divides a*b evenly).
+        Like gcd, this is only well-defined up to multiplication by a
+        unit -- Z[i] has four units, so 'the' lcm isn't unique, just as
+        'the' gcd isn't."""
+        a = Zi._require_zi(a)
+        b = Zi._require_zi(b)
+        if a == Zi(0, 0) or b == Zi(0, 0):
+            return Zi(0, 0)
+        g = Zi.gcd(a, b)
+        return (a * b) // g
+
+    @staticmethod
     def congruent_modulo(a, b, c):
         """True iff a is congruent to b modulo c, i.e., iff c divides (a - b).
         Raises ZeroDivisionError if c == Zi(0, 0), via the underlying %
@@ -381,6 +426,92 @@ class Zi(Complex):
         c = Zi._require_zi(c)
         return (a - b) % c == Zi(0, 0)
 
+    @staticmethod
+    def _sum_of_two_squares(p):
+        """Find (a, b) with a^2 + b^2 == p, for a rational prime p == 1
+        (mod 4) -- such a representation is guaranteed to exist and be
+        essentially unique (up to order/sign) by Fermat's two-square
+        theorem. Private helper for factor(), below; brute-force search
+        is fine here since p is already a known small factor of a norm
+        that's been trial-divided down."""
+        for a in range(1, isqrt(p) + 1):
+            b_sq = p - a * a
+            b = isqrt(b_sq)
+            if b * b == b_sq:
+                return a, b
+        raise ValueError(f"{p} is not expressible as a sum of two squares")
+
+    @staticmethod
+    def factor(z):
+        """Factor a nonzero Gaussian integer into Gaussian primes.
+
+        Returns (unit, factors) where unit is one of Zi.units() and
+        factors is a list of (prime, exponent) pairs, such that
+            z == unit * prod(prime ** exponent for prime, exponent in factors)
+        and each prime satisfies Zi.is_gaussian_prime. Raises ValueError
+        for z == 0, since 0 has no factorization.
+
+        Method: factor the rational integer N(z) by trial division,
+        then lift each rational prime factor p to its Gaussian-prime
+        form --
+          - p == 2 (ramified):        1+i, appearing to the same power
+                                       p appears in N(z)
+          - p == 3 (mod 4) (inert):   p itself, a Gaussian prime
+          - p == 1 (mod 4) (split):   a+bi and its conjugate a-bi,
+                                       whose individual exponents in z
+                                       are found by direct trial
+                                       division on z (not derivable
+                                       from N(z) alone, since the two
+                                       conjugate primes can divide z to
+                                       different powers)
+        This is trial division throughout, so it's fine for the sizes
+        you'd hit interactively, but isn't meant for cryptographic-size
+        inputs.
+        """
+        z = Zi._require_zi(z)
+        if z == Zi(0, 0):
+            raise ValueError("cannot factor zero")
+
+        n = z.norm
+        rational_factors = []
+        d = 2
+        while d * d <= n:
+            if n % d == 0:
+                e = 0
+                while n % d == 0:
+                    n //= d
+                    e += 1
+                rational_factors.append((d, e))
+            d += 1 if d == 2 else 2
+        if n > 1:
+            rational_factors.append((n, 1))
+
+        remaining = z
+        factors = []
+        for p, _norm_exp in rational_factors:
+            if p == 2:
+                candidates = [Zi(1, 1)]
+            elif p % 4 == 3:
+                candidates = [Zi(p, 0)]
+            else:  # p % 4 == 1: splits into two conjugate Gaussian primes
+                a, b = Zi._sum_of_two_squares(p)
+                pi = Zi(a, b)
+                candidates = [pi, pi.conjugate()]
+            for pi in candidates:
+                count = 0
+                while True:
+                    q, r = Zi.modified_divmod(remaining, pi)
+                    if r != Zi(0, 0):
+                        break
+                    remaining = q
+                    count += 1
+                if count:
+                    factors.append((pi, count))
+
+        # Whatever's left after extracting every prime factor is
+        # necessarily a unit.
+        return remaining, factors
+    
     # ---------- utilities ----------
 
     @staticmethod
