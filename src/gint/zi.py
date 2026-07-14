@@ -370,6 +370,17 @@ class Zi(Complex):
             old_t, t = t, old_t - q * t
         return old_r, old_s, old_t
 
+    @staticmethod
+    def congruent_modulo(a, b, c):
+        """True iff a is congruent to b modulo c, i.e., iff c divides (a - b).
+        Raises ZeroDivisionError if c == Zi(0, 0), via the underlying %
+        operator (same behavior as gcd/xgcd on a zero modulus).
+        """
+        a = Zi._require_zi(a)
+        b = Zi._require_zi(b)
+        c = Zi._require_zi(c)
+        return (a - b) % c == Zi(0, 0)
+
     # ---------- utilities ----------
 
     @staticmethod

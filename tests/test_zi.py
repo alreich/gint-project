@@ -583,6 +583,49 @@ class TestNumberTheory(unittest.TestCase):
 
 
 # ----------------------------------------------------------------------
+# congruent_modulo
+# ----------------------------------------------------------------------
+
+class TestCongruentModulo(unittest.TestCase):
+    def test_basic_true_case(self):
+        # 7 == 2 (mod 5) on the real axis, same as ordinary integers.
+        self.assertTrue(Zi.congruent_modulo(Zi(7, 0), Zi(2, 0), Zi(5, 0)))
+
+    def test_basic_false_case(self):
+        self.assertFalse(Zi.congruent_modulo(Zi(7, 0), Zi(3, 0), Zi(5, 0)))
+
+    def test_congruent_gaussian_example(self):
+        # Construct b so that b - a is a guaranteed multiple of c.
+        c = Zi(2, 1)
+        a = Zi(3, 4)
+        b = a + c * Zi(5, -2)
+        self.assertTrue(Zi.congruent_modulo(a, b, c))
+
+    def test_not_congruent_gaussian_example(self):
+        c = Zi(2, 1)
+        a = Zi(3, 4)
+        b = a + c * Zi(5, -2) + Zi(1, 0)  # offset by a non-multiple of c
+        self.assertFalse(Zi.congruent_modulo(a, b, c))
+
+    def test_congruent_reflexive_simple(self):
+        self.assertTrue(Zi.congruent_modulo(Zi(3, 4), Zi(3, 4), Zi(2, 1)))
+
+    def test_congruent_with_unit_modulus_always_true(self):
+        # Units divide everything, so congruence mod a unit is vacuous.
+        for u in Zi.units():
+            self.assertTrue(Zi.congruent_modulo(Zi(3, 4), Zi(-7, 2), u))
+
+    def test_congruent_modulo_zero_raises(self):
+        with self.assertRaises(ZeroDivisionError):
+            Zi.congruent_modulo(Zi(1, 1), Zi(2, 2), Zi(0, 0))
+
+    def test_congruent_modulo_accepts_int(self):
+        # _require_zi should coerce plain ints, same as gcd/xgcd do.
+        self.assertTrue(Zi.congruent_modulo(7, 2, 5))
+        self.assertFalse(Zi.congruent_modulo(7, 3, 5))
+
+
+# ----------------------------------------------------------------------
 # Utilities: random, eye, units, is_unit, two
 # ----------------------------------------------------------------------
 
@@ -634,6 +677,7 @@ class TestUtilities(unittest.TestCase):
 # ----------------------------------------------------------------------
 # Fuzz tests: algebraic properties that must hold for ALL Gaussian ints
 # ----------------------------------------------------------------------
+
 class TestFuzz(unittest.TestCase):
     SEED = 20260710
     N_TRIALS = 500
@@ -779,6 +823,32 @@ class TestFuzz(unittest.TestCase):
             b = self._random_zi(allow_zero=False)
             g, s, t = Zi.xgcd(a, b)
             self.assertEqual(a * s + b * t, g)
+
+    def test_congruent_modulo_reflexive(self):
+        for _ in range(self.N_TRIALS):
+            a = self._random_zi()
+            m = self._random_zi(allow_zero=False)
+            self.assertTrue(Zi.congruent_modulo(a, a, m))
+
+    def test_congruent_modulo_symmetric(self):
+        for _ in range(self.N_TRIALS):
+            a, b = self._random_zi(), self._random_zi()
+            m = self._random_zi(allow_zero=False)
+            self.assertEqual(Zi.congruent_modulo(a, b, m), Zi.congruent_modulo(b, a, m))
+
+    def test_congruent_modulo_transitive(self):
+        # Random unrelated triples would almost never satisfy a==b (mod m),
+        # making transitivity vacuously true and the test meaningless. So
+        # we deliberately construct b and c to be congruent to a mod m,
+        # then confirm a is therefore congruent to c.
+        for _ in range(self.N_TRIALS // 5):
+            a = self._random_zi()
+            m = self._random_zi(allow_zero=False)
+            b = a + m * self._random_zi()
+            c = b + m * self._random_zi()
+            self.assertTrue(Zi.congruent_modulo(a, b, m))
+            self.assertTrue(Zi.congruent_modulo(b, c, m))
+            self.assertTrue(Zi.congruent_modulo(a, c, m))
 
 
 # ----------------------------------------------------------------------
