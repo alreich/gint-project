@@ -183,15 +183,11 @@ class Zi(Complex):
     def __imul__(self, other):
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other):  # implements the / operator
         """Exact division. Returns the precise Gaussian-rational quotient
         as a Qi (or as a Zi, via Qi's auto-collapse, when the division is
         exact). Uses exact integer/Fraction arithmetic throughout, so it
-        never loses precision regardless of coefficient size.
-
-        Note this is a deliberate change from rounding-to-nearest, which
-        is what // (see __floordiv__) is for now that Qi exists to
-        represent the exact result."""
+        never loses precision regardless of coefficient size."""
         oth = Zi._ensure_zi(other)
         if oth is None:
             return NotImplemented
@@ -199,7 +195,7 @@ class Zi(Complex):
         if n == 0:
             raise ZeroDivisionError("division by zero Gaussian integer")
         from .qi import Qi  # local import: avoids a circular import,
-                                # since qi.py imports Zi at module level
+                            # since qi.py imports Zi at module level
         num = self * oth.conjugate()
         return Qi(Fraction(num.real, n), Fraction(num.imag, n))
 
@@ -209,12 +205,12 @@ class Zi(Complex):
             return NotImplemented
         return oth.__truediv__(self)
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other):  # implements the // operator
         """Gaussian integers have no natural total order, so 'floor'
         division is defined as rounding to the nearest Gaussian integer
         (using exact Fraction arithmetic, so it stays precise regardless
         of coefficient size). This is distinct from __truediv__, which
-        now returns the exact quotient as a Qi."""
+        returns the exact quotient as a Qi or Zi."""
         oth = Zi._ensure_zi(other)
         if oth is None:
             return NotImplemented
@@ -231,6 +227,7 @@ class Zi(Complex):
         return oth.__floordiv__(self)
 
     def __mod__(self, other):
+        """Implements the % operator."""
         oth = Zi._ensure_zi(other)
         if oth is None:
             return NotImplemented
@@ -238,11 +235,12 @@ class Zi(Complex):
         return self - oth * q
 
     def __pow__(self, exponent):
+        """Implements the ** operator."""
         if not isinstance(exponent, int):
             return NotImplemented
         if exponent == 0:
             return Zi(1, 0)
-        # For a negative exponent, Zi(1, 0) / self now returns the EXACT
+        # For a negative exponent, Zi(1, 0) / self returns the EXACT
         # inverse (a Qi, unless self is a unit) rather than a rounded
         # approximation. The multiplication loop below works correctly
         # even when base/result become Qi partway through, since Qi's
