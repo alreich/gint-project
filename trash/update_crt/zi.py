@@ -479,65 +479,6 @@ class Zi(Complex):
         return (a - b) % c == Zi(0, 0)
 
     @staticmethod
-    def crt(residues, moduli):
-        """Chinese Remainder Theorem over the Gaussian integers.
-
-        Given pairwise-coprime moduli m_0, ..., m_{k-1} in Z[i] and
-        matching residues a_0, ..., a_{k-1}, returns a Gaussian integer
-        x such that
-
-            x % moduli[j] == residues[j] % moduli[j]   for every j
-
-        i.e. x is congruent to residues[j] modulo moduli[j] for every j
-        (see congruent_modulo). x is unique modulo M = prod(moduli),
-        the same guarantee the classic integer CRT gives -- except
-        that here, as with gcd/xgcd/factor, everything is only
-        determined up to a unit factor, since Z[i]'s four units (see
-        Zi.units) make "the" gcd/product non-unique to begin with.
-
-        Method: fold the two-modulus formula in one pair at a time --
-        given x already solving the system for m_0..m_{i-1} (combined
-        so far into M), and a new pair (residues[i], moduli[i]),
-        xgcd(M, moduli[i]) gives Bezout coefficients s, t with
-        M*s + moduli[i]*t == g. Coprimality (required for a solution
-        to exist) means g is a unit, so normalizing s, t by g's inverse
-        gives M*s + moduli[i]*t == 1 exactly, and
-            x_new = x*t*moduli[i] + residues[i]*s*M  (mod M*moduli[i])
-        satisfies both x_new == x (mod M) and x_new == residues[i]
-        (mod moduli[i]) -- the standard two-modulus CRT construction.
-        Repeating this for each successive modulus folds all of them
-        into one solution.
-
-        Raises ValueError if residues and moduli have different
-        lengths, if moduli is empty, or if the moduli aren't pairwise
-        coprime (detected as soon as some modulus fails to be coprime
-        with the product of the ones already folded in -- which, since
-        Z[i] is a UFD, can only happen if it shares a common
-        non-unit factor with one of them individually). Raises
-        ZeroDivisionError if any modulus is zero.
-        """
-        residues = [Zi._require_zi(r) for r in residues]
-        moduli = [Zi._require_zi(m) for m in moduli]
-        if len(residues) != len(moduli):
-            raise ValueError("residues and moduli must have the same length")
-        if not moduli:
-            raise ValueError("crt requires at least one modulus")
-        if any(m == Zi(0, 0) for m in moduli):
-            raise ZeroDivisionError("modulus cannot be zero")
-
-        x, m = residues[0] % moduli[0], moduli[0]
-        for a_i, m_i in zip(residues[1:], moduli[1:]):
-            g, s, t = Zi.xgcd(m, m_i)
-            if not g.is_unit:
-                raise ValueError("moduli must be pairwise coprime")
-            g_inv = g.inverse()  # normalize so m*s + m_i*t == 1 exactly
-            s, t = s * g_inv, t * g_inv
-            m_new = m * m_i
-            x = (x * t * m_i + a_i * s * m) % m_new
-            m = m_new
-        return x
-
-    @staticmethod
     def _sum_of_two_squares(p):
         """Find (a, b) with a^2 + b^2 == p, for a rational prime p == 1
         (mod 4) -- such a representation is guaranteed to exist and be
