@@ -1,6 +1,5 @@
 """Gaussian integer (Zi) class: a + bi with a, b in Z."""
 
-import re
 from fractions import Fraction
 from math import sqrt, isqrt
 from numbers import Complex
@@ -13,26 +12,8 @@ class Zi(Complex):
 
     __slots__ = ('_real', '_imag')
 
-    # The character that represents the imaginary unit in str().
-    # Change via Zi.set_unit_symbol('i') or Zi.set_unit_symbol('j').
-    # Qi delegates to this same setting, so Zi and Qi always agree --
-    # important since a Qi with integer components collapses into a Zi.
-    _unit_symbol = 'j'
-
-    # A composite string like '(2-3j)', '3j', or '-2i': an optional signed
-    # real part, an optional signed-imaginary+unit part, at least one of
-    # the two required. Components are plain (possibly signed) integers,
-    # since Zi -- unlike Qi -- has no fractional part.
-    _INT = r'[+-]?\d+'
-    _PAIR_RE = re.compile(rf'^(?P<real>{_INT})(?P<sign>[+-])(?P<imag>\d+)[ij]$')
-    _IMAG_ONLY_RE = re.compile(rf'^(?P<imag>{_INT})[ij]$')
-
     def __init__(self, real = None, imag = None) -> None:
-        if isinstance(real, str) and imag is None:
-            r, i = Zi._parse_string(real)
-            super().__setattr__('_real', r)
-            super().__setattr__('_imag', i)
-        elif isinstance(real, (complex, Zi)):
+        if isinstance(real, (complex, Zi)):
             if imag is None:
                 super().__setattr__('_real', round(real.real))
                 super().__setattr__('_imag', round(real.imag))
@@ -70,31 +51,6 @@ class Zi(Complex):
         raise IndexError("Zi index out of range (must be 0 or 1)")
 
     # ---------------- Type Cast -----------------------
-
-    @staticmethod
-    def _parse_string(s):
-        """Parse a full Zi string representation, e.g. '(2-3j)', '3j',
-        '-2i', or a bare real like '4'. Returns an (int, int) pair.
-        Raises ValueError if unparsable."""
-        s = s.strip()
-        inner = s
-        if inner.startswith('(') and inner.endswith(')'):
-            inner = inner[1:-1].strip()
-
-        if inner and inner[-1] in 'ij':
-            m = Zi._PAIR_RE.match(inner)
-            if m:
-                real = int(m.group('real'))
-                mag = int(m.group('imag'))
-                imag = mag if m.group('sign') == '+' else -mag
-                return real, imag
-            m = Zi._IMAG_ONLY_RE.match(inner)
-            if m:
-                return 0, int(m.group('imag'))
-            raise ValueError(f"Cannot parse Zi string: {s!r}")
-
-        # No imaginary unit present: the whole thing is the real part.
-        return int(inner), 0
 
     @staticmethod
     def _ensure_zi(x):
@@ -148,17 +104,9 @@ class Zi(Complex):
         return f"Zi({self.real}, {self.imag})"
 
     def __str__(self):
-        """e.g. Zi(2, -3) -> '(2-3j)' (or '(2-3i)' if the unit symbol has
-        been set to 'i'). Matches complex's str() format -- real part
-        dropped and no parens when it's zero -- except a purely real Zi
-        prints as a bare integer with no unit at all."""
         if self.imag == 0:
             return str(self._real)
-        sym = Zi._unit_symbol
-        if self.real == 0:
-            return f"{self.imag}{sym}"
-        sign = '-' if self.imag < 0 else '+'
-        return f"({self.real}{sign}{abs(self.imag)}{sym})"
+        return str(complex(self.real, self.imag))
 
     def __hash__(self):
         return hash((self.real, self.imag))
@@ -564,18 +512,6 @@ class Zi(Complex):
         # necessarily a unit.
         return remaining, factors
     
-    # ---------- Configuration ----------
-
-    @classmethod
-    def get_unit_symbol(cls):
-        return cls._unit_symbol
-
-    @classmethod
-    def set_unit_symbol(cls, symbol):
-        if symbol not in ('i', 'j'):
-            raise ValueError("unit symbol must be 'i' or 'j'")
-        cls._unit_symbol = symbol
-
     # ---------- utilities ----------
 
     @staticmethod

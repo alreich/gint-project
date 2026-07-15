@@ -43,43 +43,12 @@ class TestInit(unittest.TestCase):
             Zi(Zi(2, 5), 1)
 
     def test_invalid_real_type_raises(self):
-        # Strings are now a valid `real` argument (see the string-parsing
-        # tests below), so this needs a genuinely unsupported type.
         with self.assertRaises(TypeError):
-            Zi(object())
+            Zi("nope")
 
     def test_invalid_imag_type_raises(self):
         with self.assertRaises(TypeError):
             Zi(3, "nope")
-
-    def test_invalid_string_raises_value_error(self):
-        with self.assertRaises(ValueError):
-            Zi('not-a-number')
-
-    def test_from_string_pure_real(self):
-        self.assertEqual(Zi('5'), Zi(5, 0))
-        self.assertEqual(Zi('-5'), Zi(-5, 0))
-
-    def test_from_string_pair_default_unit(self):
-        self.assertEqual(Zi('2-3j'), Zi(2, -3))
-        self.assertEqual(Zi('(2-3j)'), Zi(2, -3))
-        self.assertEqual(Zi('-2+3j'), Zi(-2, 3))
-
-    def test_from_string_pair_i_unit(self):
-        # The parser accepts 'i' regardless of the currently configured
-        # unit symbol -- only str() output depends on that setting.
-        self.assertEqual(Zi('2-3i'), Zi(2, -3))
-        self.assertEqual(Zi('(2-3i)'), Zi(2, -3))
-
-    def test_from_string_imag_only(self):
-        self.assertEqual(Zi('3j'), Zi(0, 3))
-        self.assertEqual(Zi('-3j'), Zi(0, -3))
-        self.assertEqual(Zi('3i'), Zi(0, 3))
-        self.assertEqual(Zi('-2i'), Zi(0, -2))
-
-    def test_from_string_with_imag_raises(self):
-        with self.assertRaises(TypeError):
-            Zi('3', 1)
 
 
 # ----------------------------------------------------------------------
@@ -121,71 +90,6 @@ class TestProtocols(unittest.TestCase):
     def test_hashable_in_set(self):
         s = {Zi(1, 1), Zi(1, 1), Zi(2, 2)}
         self.assertEqual(len(s), 2)
-
-
-# ----------------------------------------------------------------------
-# String representation, unit-symbol configuration, and round-trip
-# parsing (mirrors the equivalent section in test_qi.py, since Zi and
-# Qi now share a single unit-symbol setting -- see TestZiQiInterop
-# below for tests confirming that sharing).
-# ----------------------------------------------------------------------
-
-class TestStringRepresentation(unittest.TestCase):
-    def setUp(self):
-        # Defensive: make sure every test in this class starts from the
-        # default, regardless of what earlier tests (in this file or
-        # test_qi.py) left the shared setting as.
-        Zi.set_unit_symbol('j')
-
-    def tearDown(self):
-        Zi.set_unit_symbol('j')
-
-    def test_get_unit_symbol_default(self):
-        self.assertEqual(Zi.get_unit_symbol(), 'j')
-
-    def test_str_unit_symbol_configurable(self):
-        Zi.set_unit_symbol('i')
-        self.assertEqual(str(Zi(2, -3)), '(2-3i)')
-
-    def test_str_default_is_j(self):
-        self.assertEqual(str(Zi(2, -3)), '(2-3j)')
-
-    def test_str_imag_only_uses_current_symbol(self):
-        Zi.set_unit_symbol('i')
-        self.assertEqual(str(Zi(0, 3)), '3i')
-        self.assertEqual(str(Zi(0, -3)), '-3i')
-
-    def test_str_pure_real_has_no_unit_regardless_of_symbol(self):
-        Zi.set_unit_symbol('i')
-        self.assertEqual(str(Zi(5, 0)), '5')
-
-    def test_set_unit_symbol_rejects_invalid(self):
-        with self.assertRaises(ValueError):
-            Zi.set_unit_symbol('k')
-
-    def test_set_unit_symbol_invalid_does_not_change_setting(self):
-        try:
-            Zi.set_unit_symbol('k')
-        except ValueError:
-            pass
-        self.assertEqual(Zi.get_unit_symbol(), 'j')
-
-    def test_round_trip_parses_own_str_output_default_unit(self):
-        original = Zi(2, -3)
-        self.assertEqual(Zi(str(original)), original)
-
-    def test_round_trip_parses_own_str_output_i_unit(self):
-        Zi.set_unit_symbol('i')
-        original = Zi(-7, 11)
-        self.assertEqual(Zi(str(original)), original)
-
-    def test_round_trip_many_random_values(self):
-        rng = random.Random(42)
-        for symbol in ('j', 'i'):
-            Zi.set_unit_symbol(symbol)
-            for _ in range(200):
-                z = Zi(rng.randint(-1000, 1000), rng.randint(-1000, 1000))
-                self.assertEqual(Zi(str(z)), z)
 
 
 # ----------------------------------------------------------------------
@@ -1202,32 +1106,6 @@ class TestZiQiInterop(unittest.TestCase):
         # change didn't reintroduce a raise for genuinely bad types.
         self.assertFalse(Zi(1, 2) == "nope")
         self.assertNotEqual(Zi(1, 2), "nope")
-
-    def test_unit_symbol_is_shared_between_zi_and_qi(self):
-        # A single source of truth (living on Zi): setting it via either
-        # class must be visible through both classes' getters.
-        Qi = self.Qi
-        try:
-            Zi.set_unit_symbol('i')
-            self.assertEqual(Qi.get_unit_symbol(), 'i')
-            Qi.set_unit_symbol('j')
-            self.assertEqual(Zi.get_unit_symbol(), 'j')
-        finally:
-            Zi.set_unit_symbol('j')
-
-    def test_qi_collapsed_to_zi_reflects_current_symbol(self):
-        # Before the fix this shared setting exists to prevent, a Qi
-        # that collapses to a Zi at construction (see Qi.__new__) could
-        # print with a different unit symbol than the Qi it came from,
-        # since each class tracked its own separate setting.
-        Qi = self.Qi
-        try:
-            Qi.set_unit_symbol('i')
-            collapsed = Qi(4, 6)
-            self.assertIsInstance(collapsed, Zi)
-            self.assertEqual(str(collapsed), '(4+6i)')
-        finally:
-            Qi.set_unit_symbol('j')
 
 
 def main():

@@ -168,28 +168,6 @@ class TestStringRepresentation(unittest.TestCase):
     def test_get_unit_symbol_default(self):
         self.assertEqual(Qi.get_unit_symbol(), 'j')
 
-    def test_unit_symbol_shared_with_zi(self):
-        # Qi.get_unit_symbol()/set_unit_symbol() forward to Zi's -- a
-        # single source of truth, since a Qi with whole-number
-        # components collapses into a Zi at construction (Qi.__new__)
-        # and the two must always agree on how they print.
-        try:
-            Zi.set_unit_symbol('i')
-            self.assertEqual(Qi.get_unit_symbol(), 'i')
-            Qi.set_unit_symbol('j')
-            self.assertEqual(Zi.get_unit_symbol(), 'j')
-        finally:
-            Zi.set_unit_symbol('j')
-
-    def test_collapsed_zi_uses_symbol_set_via_qi(self):
-        try:
-            Qi.set_unit_symbol('i')
-            collapsed = Qi(4, 6)
-            self.assertIsInstance(collapsed, Zi)
-            self.assertEqual(str(collapsed), '(4+6i)')
-        finally:
-            Qi.set_unit_symbol('j')
-
     def test_round_trip_parses_own_str_output(self):
         original = Qi('1/2', '-3/5')
         self.assertEqual(Qi(str(original)), original)

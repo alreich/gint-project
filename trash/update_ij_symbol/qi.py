@@ -21,12 +21,9 @@ class Qi(Complex):
 
     __slots__ = ('_real', '_imag')
 
-    # The imaginary-unit symbol used in str() lives on Zi, not here --
-    # Qi.get_unit_symbol()/set_unit_symbol() below just forward to it.
-    # This keeps a single source of truth, which matters because a Qi
-    # with whole-number components collapses into a Zi (see __new__):
-    # without sharing the setting, str() on the collapsed Zi could show
-    # a different unit symbol than str() on the Qi it came from.
+    # The character that represents the imaginary unit in str()
+    # Change via Qi.set_unit_symbol('i')  or  Qi.set_unit_symbol('j')
+    _unit_symbol = 'j'
 
     # Default cap used by limit_denominator() when none is given
     # Change via Qi.set_max_denominator(...)
@@ -200,7 +197,7 @@ class Qi(Complex):
         omits the real part when it's zero); this keeps the format simple
         and unambiguous to parse back with Qi(str(q))."""
         sign = '-' if self.imag < 0 else '+'
-        return f"({self.real}{sign}{abs(self.imag)}{Zi.get_unit_symbol()})"
+        return f"({self.real}{sign}{abs(self.imag)}{Qi._unit_symbol})"
 
     def __hash__(self):
         return hash((self.real, self.imag))
@@ -341,15 +338,13 @@ class Qi(Complex):
 
     @classmethod
     def get_unit_symbol(cls):
-        """Forwards to Zi.get_unit_symbol(), the single source of truth
-        (see the note by __slots__ above)."""
-        return Zi.get_unit_symbol()
+        return cls._unit_symbol
 
     @classmethod
     def set_unit_symbol(cls, symbol):
-        """Forwards to Zi.set_unit_symbol(); setting it on either class
-        affects both, since they share the same underlying setting."""
-        Zi.set_unit_symbol(symbol)
+        if symbol not in ('i', 'j'):
+            raise ValueError("unit symbol must be 'i' or 'j'")
+        cls._unit_symbol = symbol
 
     @classmethod
     def get_max_denominator(cls):
