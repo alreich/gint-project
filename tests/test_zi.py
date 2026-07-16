@@ -488,7 +488,7 @@ class TestPow(unittest.TestCase):
         self.assertEqual(z * result, Zi(1, 0))
 
     def test_pow_negative_two_non_unit_exact(self):
-        from gint import Qi
+        # from gint import Qi
         z = Zi(1, 2)  # norm 5
         result = z ** -2
         self.assertEqual(z * z * result, Zi(1, 0))
@@ -691,9 +691,9 @@ class TestNumberTheory(unittest.TestCase):
             b = Zi(rng.randint(-100, 100), rng.randint(-100, 100))
             if a == Zi(0, 0) or b == Zi(0, 0):
                 continue
-            l = Zi.lcm(a, b)
-            self.assertEqual(l % a, Zi(0, 0))
-            self.assertEqual(l % b, Zi(0, 0))
+            _l = Zi.lcm(a, b)
+            self.assertEqual(_l % a, Zi(0, 0))
+            self.assertEqual(_l % b, Zi(0, 0))
 
     def test_gcd_times_lcm_norm_matches_product_norm(self):
         # |gcd(a,b)| * |lcm(a,b)| == |a| * |b| (norms, since gcd/lcm
@@ -706,8 +706,8 @@ class TestNumberTheory(unittest.TestCase):
             if a == Zi(0, 0) or b == Zi(0, 0):
                 continue
             g = Zi.gcd(a, b)
-            l = Zi.lcm(a, b)
-            self.assertEqual(g.norm * l.norm, a.norm * b.norm)
+            _l = Zi.lcm(a, b)
+            self.assertEqual(g.norm * _l.norm, a.norm * b.norm)
 
     def test_is_associate_true_for_unit_multiples(self):
         a = Zi(3, 4)
@@ -939,7 +939,7 @@ class TestCRT(unittest.TestCase):
 
     def test_non_coprime_detected_against_combined_product(self):
         # 1+2i and 1-2i are themselves coprime (norm 5 each, neither
-        # divides the other) -- but their product is exactly 5, and
+        # divides the other). But their product is exactly 5, and
         # crt() folds moduli in one at a time by testing each new
         # modulus against the *running product* of the ones already
         # combined, not against every earlier modulus individually. So
