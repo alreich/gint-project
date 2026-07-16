@@ -386,9 +386,11 @@ class Zi(Complex):
     def modified_divmod(a, b):
         """Divide a by b, rounding the quotient to the nearest Gaussian
         integer (rather than truncating), so that the remainder has
-        strictly smaller norm than b. This is what makes gcd/xgcd below
-        terminate correctly, since Z[i] is a Euclidean domain under the
-        norm only when division rounds to nearest."""
+        strictly smaller norm than b. Returns q & r, such that
+        a = b * q + r. This is what makes gcd/xgcd below terminate
+        correctly, since Z[i] is a Euclidean domain under the norm
+        only when division rounds to nearest.
+        """
         a = Zi._require_zi(a)
         b = Zi._require_zi(b)
         if b == Zi(0, 0):
@@ -399,6 +401,11 @@ class Zi(Complex):
 
     @staticmethod
     def gcd(a, b):
+        """A gcd algorithm for Gaussian integers.
+        Returns the greatest common divisor of a & b.
+
+        This function implements the Euclidean algorithm for Gaussian integers.
+        """
         a = Zi._require_zi(a)
         b = Zi._require_zi(b)
         while b != Zi(0, 0):
