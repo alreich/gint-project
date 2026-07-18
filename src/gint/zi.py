@@ -1,4 +1,34 @@
-"""Gaussian integer (Zi) class: a + bi with a, b in Z."""
+"""Gaussian Integer Class
+
+A Gaussian integer is a complex number whose real and imaginary parts are both integers.
+Similarly, a Gaussian rational is a complex number whose real and imaginary parts are
+rational numbers.
+
+In mathematics, Gaussian integers and rationals are denoted by Z[i] & Q[i], resp.
+So, here, Zi & Qi denote the Gaussian integer and rational classes, respectively.
+
+The classes support the arithmetic of Gaussian integers and rationals using the
+operators: +, -, *, /, //, %, **, +=, -=, *=, and /=, along with a variety of
+number-theoretic algorithms, such as greatest common divisor (gcd), an extended
+Euclidean algorithm (xgcd), etc.
+
+Example:
+  > from gaussians import Zi, Qi
+  >
+  > alpha = Zi(11, 3)
+  > beta = Zi(1, 8)
+  > a, x, y = Zi.xgcd(alpha, beta)
+  > print(f"{alpha * x + beta * y} = {alpha} * {x} + {beta} * {y}")
+  > (1-2j) = (11+3j) * (2-1j) + (1+8j) * 3j
+
+"""
+
+__author__ = "Alfred J. Reich, Ph.D."
+__contact__ = "al.reich@gmail.com"
+__copyright__ = "Copyright (C) 2024 Alfred J. Reich, Ph.D."
+__license__ = "MIT"
+__version__ = "0.2.0"
+
 
 import re
 from fractions import Fraction
@@ -246,8 +276,8 @@ class Zi(Complex):
         n = oth.norm
         if n == 0:
             raise ZeroDivisionError("division by zero Gaussian integer")
-        from .qi import Qi  # local import: avoids a circular import,
-                            # since qi.py imports Zi at module level
+        # local import: avoids a circular import, since qi.py imports Zi at module level
+        from .qi import Qi
         num = self * oth.conjugate()
         return Qi(Fraction(num.real, n), Fraction(num.imag, n))
 
@@ -497,19 +527,19 @@ class Zi(Complex):
 
         i.e. x is congruent to residues[j] modulo moduli[j] for every j
         (see congruent_modulo). x is unique modulo M = prod(moduli),
-        the same guarantee the classic integer CRT gives -- except
+        the same guarantee the classic integer CRT gives, except
         that here, as with gcd/xgcd/factor, everything is only
         determined up to a unit factor, since Z[i]'s four units (see
         Zi.units) make "the" gcd/product non-unique to begin with.
 
-        Method: fold the two-modulus formula in one pair at a time --
-        given x already solving the system for m_0..m_{i-1} (combined
+        Method: fold the two-modulus formula in one pair at a time,
+        given x already solving the system for m_0...m_{i-1} (combined
         so far into M), and a new pair (residues[i], moduli[i]),
         xgcd(M, moduli[i]) gives Bezout coefficients s, t with
         M*s + moduli[i]*t == g. Coprimality (required for a solution
         to exist) means g is a unit, so normalizing s, t by g's inverse
         gives M*s + moduli[i]*t == 1 exactly, and
-            x_new = x*t*moduli[i] + residues[i]*s*M  (mod M*moduli[i])
+        x_new = x*t*moduli[i] + residues[i]*s*M  (mod M*moduli[i])
         satisfies both x_new == x (mod M) and x_new == residues[i]
         (mod moduli[i]) -- the standard two-modulus CRT construction.
         Repeating this for each successive modulus folds all of them
@@ -518,7 +548,7 @@ class Zi(Complex):
         Raises ValueError if residues and moduli have different
         lengths, if moduli is empty, or if the moduli aren't pairwise
         coprime (detected as soon as some modulus fails to be coprime
-        with the product of the ones already folded in -- which, since
+        with the product of the ones already folded in, which, since
         Z[i] is a UFD, can only happen if it shares a common
         non-unit factor with one of them individually). Raises
         ZeroDivisionError if any modulus is zero.
@@ -565,7 +595,7 @@ class Zi(Complex):
 
         Returns (unit, factors) where unit is one of Zi.units() and
         factors is a list of (prime, exponent) pairs, such that
-            z == unit * prod(prime ** exponent for prime, exponent in factors)
+        z == unit * prod(prime ** exponent for prime, exponent in factors)
         and each prime satisfies Zi.is_gaussian_prime. Raises ValueError
         for z == 0, since 0 has no factorization.
 

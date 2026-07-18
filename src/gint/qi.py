@@ -5,6 +5,23 @@ Qi is integrated with Zi (Gaussian integers): constructing a Qi whose
 real and imaginary parts both happen to be whole numbers transparently
 yields a Zi instead of a Qi (see __new__). This means Qi(4, 6) is
 actually a Zi(4, 6), while Qi(4, '2/3') is a genuine Qi.
+
+Examples:
+
+>>> from gint import Zi, Qi
+>>>
+>>> Zi(11, 3) / Zi(1, 8)
+>>> # ==> Qi('7/13', '-17/13')
+>>>
+>>> print(Zi(11, 3) / Zi(1, 8))
+>>> # ==> (7/13-17/13j)
+>>>
+>>> Qi(2.25, -3.6)
+>>> # ==> Qi('9/4', '-18/5')
+>>>
+>>> Qi(2.0, 4)
+>>> # ==> Zi(2, 4)
+
 """
 
 import re
@@ -146,7 +163,7 @@ class Qi(Complex):
         """Extract a (Fraction, Fraction) pair from any operand type Qi's
         arithmetic understands (Qi, Zi, complex, Fraction, int, float).
         Returns None for anything else, so operator methods can return
-        NotImplemented rather than raising."""
+        NotImplemented rather than raising an exception."""
         if isinstance(x, Qi):
             return x.real, x.imag
         if isinstance(x, Zi):
@@ -299,7 +316,7 @@ class Qi(Complex):
         return Qi((c * a + d * b) / denom, (d * a - c * b) / denom)
 
     def inverse(self):
-        """The exact multiplicative inverse of this Gaussian rational."""
+        """Returns the exact multiplicative inverse of this Gaussian rational."""
         denom = self.real * self.real + self.imag * self.imag
         if denom == 0:
             raise ZeroDivisionError("cannot invert zero Gaussian rational")
@@ -329,10 +346,12 @@ class Qi(Complex):
     # ---------- Array Conversion ----------
 
     def to_array(self):
+        """Returns a two-element array representation of this Gaussian rational."""
         return [self.real, self.imag]
 
     @staticmethod
     def from_array(arr):
+        """Returns a Gaussian rational, given a two-element array."""
         if len(arr) != 2:
             raise ValueError("Array must have exactly two elements")
         return Qi(arr[0], arr[1])
