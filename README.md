@@ -28,7 +28,7 @@ pytest
 
 ## Docs
 
-Full API documentation: https://gint.readthedocs.io
+Full API documentation: https://gint-project.readthedocs.io
 
 Build locally:
 
