@@ -13,14 +13,13 @@ number-theoretic algorithms, such as greatest common divisor (gcd), an extended
 Euclidean algorithm (xgcd), etc.
 
 Example:
-  > from gaussians import Zi, Qi
-  >
-  > alpha = Zi(11, 3)
-  > beta = Zi(1, 8)
-  > a, x, y = Zi.xgcd(alpha, beta)
-  > print(f"{alpha * x + beta * y} = {alpha} * {x} + {beta} * {y}")
-  > (1-2j) = (11+3j) * (2-1j) + (1+8j) * 3j
-
+>>> from gint import Zi, Qi
+>>>
+>>> alpha = Zi(11, 3)
+>>> beta = Zi(1, 8)
+>>> a, x, y = Zi.xgcd(alpha, beta)
+>>> print(f'{alpha * x + beta * y} = {alpha} * {x} + {beta} * {y}')
+>>> # ==> (1-2j) = (11+3j) * (2-1j) + (1+8j) * 3j
 """
 
 __author__ = "Alfred J. Reich, Ph.D."
