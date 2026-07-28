@@ -234,7 +234,7 @@ class TestProtocols(unittest.TestCase):
         self.assertEqual(q[0], Fraction(1, 2))
         self.assertEqual(q[1], Fraction(1, 3))
         with self.assertRaises(IndexError):
-            q[2]
+            _ = q[2]
 
     def test_unpacking(self):
         a, b = Qi('1/2', '1/3')
@@ -766,7 +766,7 @@ class TestFuzz(unittest.TestCase):
         for _ in range(self.N_TRIALS):
             a = self._random_qi()
             n = self.rng.randint(-100, 100)
-            self.assertEqual(n - a, -a + n)
+            self.assertEqual(n - a, -a + n)  # type: ignore
 
     def test_pow_matches_repeated_multiplication(self):
         for _ in range(self.N_TRIALS // 5):

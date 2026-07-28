@@ -43,7 +43,7 @@ class TestInit(unittest.TestCase):
             Zi(Zi(2, 5), 1)
 
     def test_invalid_real_type_raises(self):
-        # Strings are now a valid `real` argument (see the string-parsing
+        # Strings are a valid `real` argument (see the string-parsing
         # tests below), so this needs a genuinely unsupported type.
         with self.assertRaises(TypeError):
             Zi(object())
@@ -101,7 +101,7 @@ class TestProtocols(unittest.TestCase):
         self.assertEqual(z[0], 3)
         self.assertEqual(z[1], 4)
         with self.assertRaises(IndexError):
-            z[2]
+            _ = z[2]
 
     def test_unpacking(self):
         a, b = Zi(3, 4)
@@ -126,7 +126,7 @@ class TestProtocols(unittest.TestCase):
 # ----------------------------------------------------------------------
 # String representation, unit-symbol configuration, and round-trip
 # parsing (mirrors the equivalent section in test_qi.py, since Zi and
-# Qi now share a single unit-symbol setting -- see TestZiQiInterop
+# Qi share a single unit-symbol setting -- see TestZiQiInterop
 # below for tests confirming that sharing).
 # ----------------------------------------------------------------------
 
@@ -346,11 +346,13 @@ class TestMul(unittest.TestCase):
 # ----------------------------------------------------------------------
 
 class TestTrueDiv(unittest.TestCase):
-    """As of the Qi integration, / (__truediv__) returns the EXACT
-    Gaussian-rational quotient -- a Qi, or a Zi when the division happens
-    to be exact -- rather than rounding. // (__floordiv__, tested in
-    TestFloorDivMod below) is what rounds to the nearest Gaussian
-    integer now."""
+    """
+    / (__truediv__) returns the EXACT Gaussian-rational quotient,
+    a Qi, or a Zi when the division happens to be exact, rather than rounding.
+
+    // (__floordiv__) is tested in TestFloorDivMod, below, and rounds to the
+    nearest Gaussian integer.
+    """
 
     def test_exact_division(self):
         # (1+2i)*(2+1i) = 2 + i + 4i + 2i^2 = 0 + 5i
@@ -395,10 +397,13 @@ class TestTrueDiv(unittest.TestCase):
 # ----------------------------------------------------------------------
 
 class TestFloorDivMod(unittest.TestCase):
-    """// (__floordiv__) rounds to the nearest Gaussian integer. Unlike
-    before the Qi integration, it no longer agrees with / in general --
-    / is now exact and returns a Qi when the division isn't exact -- but
-    the two must still agree whenever the division IS exact."""
+    """
+    // (__floordiv__) rounds to the nearest Gaussian integer.
+
+    / (__truediv__) is exact and returns a Qi when the division
+    isn't exact, but // and / must still agree whenever the
+    division IS exact.
+    """
 
     def test_floordiv_matches_truediv_when_exact(self):
         rng = random.Random(7)
@@ -479,7 +484,7 @@ class TestPow(unittest.TestCase):
 
     def test_pow_negative_exponent_non_unit_returns_exact_qi(self):
         # 3+4i is not a unit (norm 25), so its inverse is a genuine
-        # Gaussian rational -- now returned exactly as a Qi.
+        # Gaussian rational, returned exactly as a Qi.
         from gint import Qi
         z = Zi(3, 4)
         result = z ** -1
@@ -1119,7 +1124,7 @@ class TestFuzz(unittest.TestCase):
     def test_abs_squared_equals_norm(self):
         for _ in range(self.N_TRIALS):
             a = self._random_zi()
-            self.assertAlmostEqual(abs(a) ** 2, a.norm, places=6)
+            self.assertAlmostEqual(abs(a) ** 2, a.norm, places=6)  # type: ignore
 
     def test_exact_division_round_trips(self):
         # Construct a*b deliberately so a*b / b == a exactly (no rounding).
@@ -1147,7 +1152,7 @@ class TestFuzz(unittest.TestCase):
         for _ in range(self.N_TRIALS):
             a = self._random_zi()
             n = self.rng.randint(-1000, 1000)
-            self.assertEqual(n - a, -a + n)
+            self.assertEqual(n - a, -a + n)  # type: ignore
 
     def test_pow_matches_repeated_multiplication(self):
         for _ in range(self.N_TRIALS // 5):  # smaller range: pow grows fast

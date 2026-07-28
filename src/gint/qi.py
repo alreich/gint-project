@@ -65,6 +65,7 @@ class Qi(Complex):
         r, i = Qi._coerce(real, imag)
         if r.denominator == 1 and i.denominator == 1:
             return Zi(int(r), int(i))
+        # noinspection PyTypeChecker
         return super().__new__(cls)
 
     def __init__(self, real=None, imag=None) -> None:

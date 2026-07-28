@@ -44,14 +44,14 @@ class Zi(Complex):
 
     # The character that represents the imaginary unit in str().
     # Change via Zi.set_unit_symbol('i') or Zi.set_unit_symbol('j').
-    # Qi delegates to this same setting, so Zi and Qi always agree --
+    # Qi delegates to this same setting, so Zi and Qi always agree,
     # important since a Qi with integer components collapses into a Zi.
     _unit_symbol = 'j'
 
     # A composite string like '(2-3j)', '3j', or '-2i': an optional signed
     # real part, an optional signed-imaginary+unit part, at least one of
     # the two required. Components are plain (possibly signed) integers,
-    # since Zi -- unlike Qi -- has no fractional part.
+    # since Zi, unlike Qi, has no fractional part.
     _INT = r'[+-]?\d+'
     _PAIR_RE = re.compile(rf'^(?P<real>{_INT})(?P<sign>[+-])(?P<imag>\d+)[ij]$')
     _IMAG_ONLY_RE = re.compile(rf'^(?P<imag>{_INT})[ij]$')
@@ -129,7 +129,7 @@ class Zi(Complex):
     def _ensure_zi(x):
         """Best-effort conversion of x to a Zi, for use inside Zi's own
         arithmetic dunder methods. Returns None (rather than raising) for
-        types it doesn't understand -- such as Qi -- so that operator
+        types it doesn't understand, such as Qi, so that operator
         methods can return NotImplemented and let Python fall back to the
         other operand's reflected method (e.g. Qi.__radd__) instead of
         failing outright. See _require_zi for a raising variant used by
@@ -178,8 +178,8 @@ class Zi(Complex):
 
     def __str__(self):
         """e.g. Zi(2, -3) -> '(2-3j)' (or '(2-3i)' if the unit symbol has
-        been set to 'i'). Matches complex's str() format -- real part
-        dropped and no parens when it's zero -- except a purely real Zi
+        been set to 'i'). Matches complex's str() format, real part
+        dropped and no parens when it's zero, except a purely real Zi
         prints as a bare integer with no unit at all."""
         if self.imag == 0:
             return str(self._real)
@@ -463,7 +463,7 @@ class Zi(Complex):
         """True iff a and b differ only by a unit factor (a == b*u for
         one of Z[i]'s four units). Two Gaussian integers that are
         associates generate the same ideal and share the same
-        factorization up to units -- e.g. this is why gcd/xgcd only
+        factorization up to units, e.g. this is why gcd/xgcd only
         determine their result up to a unit. By convention, 0 is only
         an associate of itself."""
         a = Zi._require_zi(a)
@@ -494,7 +494,7 @@ class Zi(Complex):
         """Least common multiple of two Gaussian integers, computed as
         a*b // gcd(a, b) (exact, since gcd always divides a*b evenly).
         Like gcd, this is only well-defined up to multiplication by a
-        unit -- Z[i] has four units, so 'the' lcm isn't unique, just as
+        unit, Z[i] has four units, so 'the' lcm isn't unique, just as
         'the' gcd isn't."""
         a = Zi._require_zi(a)
         b = Zi._require_zi(b)
@@ -540,16 +540,16 @@ class Zi(Complex):
         gives M*s + moduli[i]*t == 1 exactly, and
         x_new = x*t*moduli[i] + residues[i]*s*M  (mod M*moduli[i])
         satisfies both x_new == x (mod M) and x_new == residues[i]
-        (mod moduli[i]) -- the standard two-modulus CRT construction.
+        (mod moduli[i]), the standard two-modulus CRT construction.
         Repeating this for each successive modulus folds all of them
         into one solution.
 
         Raises ValueError if residues and moduli have different
         lengths, if moduli is empty, or if the moduli aren't pairwise
-        coprime (detected as soon as some modulus fails to be coprime
+        coprime. (Detected as soon as some modulus fails to be coprime
         with the product of the ones already folded in, which, since
         Z[i] is a UFD, can only happen if it shares a common
-        non-unit factor with one of them individually). Raises
+        non-unit factor with one of them individually.) Raises
         ZeroDivisionError if any modulus is zero.
         """
         residues = [Zi._require_zi(r) for r in residues]
@@ -569,14 +569,14 @@ class Zi(Complex):
             g_inv = g.inverse()  # normalize so m*s + m_i*t == 1 exactly
             s, t = s * g_inv, t * g_inv
             m_new = m * m_i
-            x = (x * t * m_i + a_i * s * m) % m_new
+            x = (x * t * m_i + a_i * s * m) % m_new  # type: ignore
             m = m_new
         return x
 
     @staticmethod
     def _sum_of_two_squares(p):
         """Find (a, b) with a^2 + b^2 == p, for a rational prime p == 1
-        (mod 4) -- such a representation is guaranteed to exist and be
+        (mod 4), such a representation is guaranteed to exist and be
         essentially unique (up to order/sign) by Fermat's two-square
         theorem. Private helper for factor(), below; brute-force search
         is fine here since p is already a known small factor of a norm
