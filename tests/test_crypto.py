@@ -1,6 +1,6 @@
 """Unit tests for the gint.crypto (Gaussian-integer RSA) module."""
 
-import math
+# import math
 import random
 import unittest
 
@@ -40,12 +40,12 @@ class TestPrimality(unittest.TestCase):
             self.assertFalse(_is_probable_prime(c), c)
 
     def test_is_probable_prime_agrees_with_trial_division(self):
-        def trial_division_is_prime(n):
-            if n < 2:
+        def trial_division_is_prime(candidate):
+            if candidate < 2:
                 return False
             i = 2
-            while i * i <= n:
-                if n % i == 0:
+            while i * i <= candidate:
+                if candidate % i == 0:
                     return False
                 i += 1
             return True
