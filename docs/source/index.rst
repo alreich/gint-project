@@ -27,3 +27,4 @@ Quickstart
 
    zi
    qi
+   crypto

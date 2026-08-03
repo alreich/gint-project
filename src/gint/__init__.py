@@ -14,7 +14,8 @@ numbers, e.g. Qi(4, 6) is a Zi(4, 6).
 
 from .zi import Zi
 from .qi import Qi
+from . import crypto
 
-__all__ = ["Zi", "Qi"]
+__all__ = ["Zi", "Qi", "crypto"]
 
 __version__ = "0.1.0"
