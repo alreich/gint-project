@@ -41,7 +41,7 @@ Quickstart
     >>> decrypt_text(ciphertext, private_key)  # ==> 'Gaussian primes are cool.'
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: API Reference
 
    zi
