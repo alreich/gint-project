@@ -1,5 +1,5 @@
-gint: Gaussian Integers and Rationals
-======================================
+gint: Gaussian Integers/Rationals + Gaussian-Integer RSA
+=========================================================
 
 **gint** provides two related numeric types:
 
@@ -7,7 +7,9 @@ gint: Gaussian Integers and Rationals
 - :class:`~gint.qi.Qi` -- Gaussian rationals, :math:`a + bi` with :math:`a, b \in \mathbb{Q}`,
   represented exactly via :class:`fractions.Fraction`.
 
-A ``Qi`` whose components both reduce to whole numbers is automatically
+Also provides **Gaussian-integer RSA cryptography** (teaching implementation only; not for real secrets)
+
+Note: A ``Qi`` whose components both reduce to whole numbers is automatically
 returned as a ``Zi`` instead -- ``Qi(4, 6)`` *is* a ``Zi(4, 6)``.
 
 Quickstart
