@@ -21,7 +21,6 @@ Examples:
 >>>
 >>> Qi(2.0, 4)
 >>> # ==> Zi(2, 4)
-
 """
 
 import re
@@ -30,6 +29,13 @@ from math import sqrt, lcm
 from numbers import Complex
 
 from .zi import Zi
+
+
+__author__ = "Alfred J. Reich, Ph.D."
+__contact__ = "al.reich@gmail.com"
+__copyright__ = "Copyright (C) 2024 Alfred J. Reich, Ph.D."
+__license__ = "MIT"
+__version__ = "0.2.0"
 
 
 class Qi(Complex):
